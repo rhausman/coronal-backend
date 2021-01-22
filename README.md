@@ -14,3 +14,4 @@ To add a dependency: `pip add [dependency name]`
 To build updated version, use `docker-compose up -d --build`
 To run, use `docker-compose up`
 or, to run without a docker container, use `uvicorn api:app --reload --workers 1 --host 0.0.0.0 --port 8000`
+Finally, go to `localhost:8000/docs` for interactive documentation.
