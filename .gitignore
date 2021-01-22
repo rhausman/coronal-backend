@@ -1,4 +1,6 @@
 
 .venv
 .vscode
-**.DS_STORE
+saved_models
+data_cache
+data

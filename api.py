@@ -5,6 +5,9 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+# Project-level imports
+# from utils import make_prediction_on_data_with_appropriate_model, load_appropriate_model, extract_data_from_file
+
 # from app.api.routes import router as api_router
 
 # to run server, uvicorn api:app --reload
@@ -35,6 +38,12 @@ async def style_the_image(
     file: UploadFile = File(...), option: Optional[str] = "30day"
 ):
     # INSERT PROCESSING HERE
+    """
+    data = extract_data_from_file(file)
+    model = load_appropriate_model(path)
+    prediction = make_prediction_on_data_using_appropriate_model(data,model)
+    etc.
+    """
     
     return {"threat_level":"low", "disp_str":"You probably don't have COVID. Maintain normal testing routine, and continue social distancing."}
 
