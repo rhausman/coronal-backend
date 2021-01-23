@@ -410,7 +410,33 @@ class RHRAD_online:
                 figure = fig.savefig(myphd_id_figure1, bbox_inches='tight')       
                 return figure
 
+class resultsProcesser:
+    def __init__(self,
+                 anomaliesCSV,
+                 alertsCSV):
+        self.anomaliesCSV = anomaliesCSV
+        self.alertsCSV = alertsCSV
+        self.alertLevel = None
 
+        anomalies = pd.read_csv(self.anomaliesCSV)
+        numAnomalies = len(anomalies)
+        if(numAnomalies == 0):
+            self.alertLevel = "low"
+        else:
+            alerts = pd.read_csv(self.alertsCSV)
+            temp = alerts.iloc[0]["alert_type"]
+            if(temp == "GREEN"):
+                self.alertLevel = "low"
+            elif(temp == "YELLOW"):
+                self.alertLevel = "medium"
+            elif(temp == "RED"):
+                self.alertLevel = "high"
+
+    def getAlertLevel(self):
+        return self.alertLevel
+        
+            
+        
 
 
 
