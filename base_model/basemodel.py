@@ -419,8 +419,8 @@ class resultsProcesser:
         self.alertsCSV = alertsCSV
         self.alertLevel = None
 
-        anomalies = pd.read_csv(self.anomaliesCSV)
-        numAnomalies = len(anomalies)
+        self.anomalies = pd.read_csv(self.anomaliesCSV)
+        numAnomalies = len(self.anomalies)
         if(numAnomalies == 0):
             self.alertLevel = "low"
         else:
@@ -435,6 +435,16 @@ class resultsProcesser:
 
     def getAlertLevel(self):
         return self.alertLevel
+
+    def getAnomalousHours(self):
+        hours = []
+
+        for i in range(len(self.anomalies)):
+            hours.append(self.anomalies.iloc[i]["datetime"].split(" ")[1][:5])
+
+        return hours[:5]
+        
+
         
             
         
