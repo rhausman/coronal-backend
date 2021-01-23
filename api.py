@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 from pydantic import BaseModel
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Body
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -36,8 +36,10 @@ class Item(BaseModel):
 # an example definition of a post operation which will take in a file
 @app.post("/analyze")  # /{option}
 async def analyze_data(
-    file: UploadFile = File(...),  # , option: Optional[str] = "30day"
+    heart_file: UploadFile = File(...),
+    step_file: UploadFile = Body(...),
 ):
+    print("string: ", heart_file.__dict__, step_file.__dict__)
     resp = {
         "threat_level": "unknown",
         "disp_str": "Please upload a file to recieve an analysis",
@@ -49,7 +51,7 @@ async def analyze_data(
     prediction = make_prediction_on_data_using_appropriate_model(data,model)
     etc.
     """
-    if file.content_type != "text/csv":
+    if heart_file.content_type != "text/csv":
         resp["disp_str"] = "Please be sure to upload a CSV file."
     elif True:
         resp["threat_level"] = "low"
