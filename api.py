@@ -60,11 +60,11 @@ async def analyze_data(
 
     alertLevel = resultsModel.getAlertLevel()    
     if(alertLevel == "low"):
-        return {"threat_level":alertLevel,  "disp_str":"You probably don't have COVID. Maintain normal testing routine, and continue social distancing."}
+        return {"threat_level":alertLevel,  "disp_str":"You may not be infected with COVID-19, though you may be asymptomatic. Maintain normal testing routine, and continue social distancing."}
     elif(alertLevel == "medium"):
-        return {"threat_level":alertLevel,  "disp_str":"Your resting heart rate has been elevated for a few hours."}
+        return {"threat_level":alertLevel,  "disp_str":"Your resting heart rate has been elevated for a few hours. Monitor your symptoms closely and consider isolation."}
     else:
-        return {"threat_level":alertLevel,  "disp_str":"Your resting heart rate has been elevated for many"}
+        return {"threat_level":alertLevel,  "disp_str":"Your resting heart rate has been elevated for many hours. You may have COVID-19 or another serious condition. Consider isolation and contact your healthcare provider if symptoms worsen."}
     """
     
     return {"threat_level":"low", "disp_str":"You probably don't have COVID. Maintain normal testing routine, and continue social distancing."}
