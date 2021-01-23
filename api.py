@@ -33,9 +33,9 @@ class Item(BaseModel):
     is_offer: Optional[bool] = None
 
 # an example definition of a post operation which will take in a file
-@app.post("/analyze/{option}")
+@app.post("/analyze") #/{option}
 async def style_the_image(
-    file: UploadFile = File(...), option: Optional[str] = "30day"
+    file: UploadFile = File(...)#, option: Optional[str] = "30day"
 ):
     # INSERT PROCESSING HERE
     """
