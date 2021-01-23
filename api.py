@@ -40,34 +40,41 @@ class Item(BaseModel):
 async def analyze_data(
     file: UploadFile = File(...)#, option: Optional[str] = "30day"
 ):
-    # INSERT PROCESSING HERE
-    """
-    data = extract_data_from_file(file)
-    model = load_appropriate_model(path)
-    prediction = make_prediction_on_data_using_appropriate_model(data,model)
-    etc.
+    
+    # dictionary to hold display messages
+    display_strings = {"low":"You may not be infected with COVID-19, though you may be asymptomatic. Maintain normal testing routine, and continue social distancing.",
+                       "medium":"Your resting heart rate has been elevated for a few hours. Monitor your symptoms closely and consider isolation.",
+                       "high":"Your resting heart rate has been elevated for many hours. You may have COVID-19 or another serious condition. Consider isolation and contact your healthcare provider if symptoms worsen."}
 
-    model1 = RHRAD_online(hr="data/AJWW3IY_hr.csv", # path to heart rate csv
-                     steps="data/AJWW3IY_steps.csv", # path to steps csv
+    """
+    #----------MODELS REQUIRE .csv FILE PATHS AS SHOWN BELOW-------------
+    
+    model1 = RHRAD_online(hr="data/IndividualRed_hr.csv", # path to heart rate csv
+                     steps="data/IndividualRed_steps.csv", # path to steps csv
                      baseline_window=480, # number of hours to use as baseline (if baseline_window > data length, will fail)
                      last_day_only=True, # if True, only the most recent day is checked for anomalous heartrates
-                     myphd_id_anomalies="results/AJWW3IY_anomalies.csv", # where to put anomalies csv
-                     myphd_id_alerts = "results/AJWW3IY_alerts.csv", # where to put alerts csv
+                     myphd_id_anomalies="results/IndividualRed_anomalies.csv", # where to put anomalies csv
+                     myphd_id_alerts = "results/IndividualRed_alerts.csv", # where to put alerts csv
                     )
     # using results paths from model1
-    resultsModel = resultsProcesser(anomaliesCSV="results/AJWW3IY_anomalies.csv",
-                                    alertsCSV="results/AJWW3IY_alerts.csv")
+    resultsModel = resultsProcesser(anomaliesCSV="results/IndividualRed_anomalies.csv",
+                                    alertsCSV="results/IndividualRed_alerts.csv")
+    #---------------------------------------------------------------------                           
 
-    alertLevel = resultsModel.getAlertLevel()    
-    if(alertLevel == "low"):
-        return {"threat_level":alertLevel,  "disp_str":"You probably don't have COVID. Maintain normal testing routine, and continue social distancing."}
-    elif(alertLevel == "medium"):
-        return {"threat_level":alertLevel,  "disp_str":"medium string here"}
-    else:
-        return {"threat_level":alertLevel,  "disp_str":"high string here"}
+    alertLevel = resultsModel.getAlertLevel() # returns a string: low, medium, or high
+    anomalousHours = resultsModel.getAnomalousHours() # returns a list of strings
+    hours_msg = "During these hours you had a high resting heart rate, relative to your baseline, which triggered the alert: " + ", ".join(anomalousHours)
     """
     
-    return {"threat_level":"low", "disp_str":"You probably don't have COVID. Maintain normal testing routine, and continue social distancing."}
+    # setting alertLevel and hours_msg for test purposes
+    # TODO: delete these when the above code is working
+    alertLevel = "low"
+    hours_msg = "During these hours you had a high resting heart rate, relative to your baseline, which triggered the alert: 5:00, 6:00, 12:00"
+    
+    return {"threat_level":alertLevel, "disp_str":display_strings[alertLevel]}
+    
+    # alternative return statement
+    return {"threat_level":alertLevel, "disp_str":display_strings[alertLevel], "hours_msg":hours_msg}
 
 
 @app.get("/get_operations")
