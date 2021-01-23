@@ -151,37 +151,38 @@ class RHRAD_online:
         # fit the model and predict the test set
         """
         if(self.last_day_only):
-            data_train_w = data_seasnCorec[-1-baseline_window:-1] 
-            # train data normalization ------------------------------------------------------
-            data_train_w += 0.1
-            standardizer = StandardScaler().fit(data_train_w.values)
-            data_train_scaled = standardizer.transform(data_train_w.values)
-            data_train_scaled_features = pd.DataFrame(data_train_scaled, index=data_train_w.index, columns=data_train_w.columns)
-            
-            data = pd.DataFrame(data_train_scaled_features)
-            data_1 = pd.DataFrame(data).fillna(0)
-            data_train_w = data_1
-            self.data_train.append(data_train_w)
+            for i in range(len(data_seasnCorec)-15, len(data_seasnCorec)):
+                data_train_w = data_seasnCorec[i-baseline_window:i] 
+                # train data normalization ------------------------------------------------------
+                data_train_w += 0.1
+                standardizer = StandardScaler().fit(data_train_w.values)
+                data_train_scaled = standardizer.transform(data_train_w.values)
+                data_train_scaled_features = pd.DataFrame(data_train_scaled, index=data_train_w.index, columns=data_train_w.columns)
+                
+                data = pd.DataFrame(data_train_scaled_features)
+                data_1 = pd.DataFrame(data).fillna(0)
+                data_train_w = data_1
+                self.data_train.append(data_train_w)
 
-            data_test_w = data_seasnCorec[-1:] 
-            # test data normalization ------------------------------------------------------
-            data_test_w += 0.1
-            data_test_scaled = standardizer.transform(data_test_w.values)
-            data_scaled_features = pd.DataFrame(data_test_scaled, index=data_test_w.index, columns=data_test_w.columns)
-            
-            data = pd.DataFrame(data_scaled_features)
-            data_1 = pd.DataFrame(data).fillna(0)
-            data_test_w = data_1
-            self.data_test.append(data_test_w)
+                data_test_w = data_seasnCorec[i:i+sliding_window] 
+                # test data normalization ------------------------------------------------------
+                data_test_w += 0.1
+                data_test_scaled = standardizer.transform(data_test_w.values)
+                data_scaled_features = pd.DataFrame(data_test_scaled, index=data_test_w.index, columns=data_test_w.columns)
+                
+                data = pd.DataFrame(data_scaled_features)
+                data_1 = pd.DataFrame(data).fillna(0)
+                data_test_w = data_1
+                self.data_test.append(data_test_w)
 
-            # fit the model  ------------------------------------------------------
-            model = EllipticEnvelope(random_state=self.RANDOM_SEED,
-                                    contamination=self.outliers_fraction,
-                                    support_fraction=0.7).fit(data_train_w)
-            # predict the test set
-            preds = model.predict(data_test_w)
-            #preds = preds.rename(lambda x: 'anomaly' if x == 0 else x, axis=1)
-            self.dfs.append(preds)
+                # fit the model  ------------------------------------------------------
+                model = EllipticEnvelope(random_state=self.RANDOM_SEED,
+                                        contamination=self.outliers_fraction,
+                                        support_fraction=0.7).fit(data_train_w)
+                # predict the test set
+                preds = model.predict(data_test_w)
+                #preds = preds.rename(lambda x: 'anomaly' if x == 0 else x, axis=1)
+                self.dfs.append(preds)
     
         else:
             for i in range(baseline_window, len(data_seasnCorec)):
