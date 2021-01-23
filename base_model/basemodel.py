@@ -44,9 +44,11 @@ class RHRAD_online:
         self.baseline_window = baseline_window #744
         self.sliding_window = sliding_window
         
-        self.myphd_id_anomalies = self.myphd_id+"_anomalies.csv"
+        # self.myphd_id_anomalies = self.myphd_id+"_anomalies.csv"
+        self.myphd_id_anomalies  = myphd_id_anomalies
         self.myphd_id_figure1 = myphd_id_figure1
-        self.myphd_id_alerts = self.myphd_id+"_alerts.csv"
+        # self.myphd_id_alerts = self.myphd_id+"_alerts.csv"
+        self.myphd_id_alerts = myphd_id_alerts
         self.myphd_id_figure2 = myphd_id_figure2
 
         self.last_day_only = last_day_only
@@ -70,11 +72,12 @@ class RHRAD_online:
         # print(self.data_test)
 
         # Process results
-        self.results = self.merge_test_results(self.data_test)
-        self.positive_anomalies = self.positive_anomalies(self.results)
+        results = self.merge_test_results(self.data_test)
+        self.pos_anomalies = self.positive_anomalies(results)
 
-        self.alerts = self.create_alerts(self.positive_anomalies, self.results, self.fitbit_hr)
-        self.test_alerts = self.merge_alerts(self.results, self.alerts)
+        if(len(self.pos_anomalies) > 0):
+            self.alerts = self.create_alerts(self.pos_anomalies, results, self.fitbit_hr)
+            self.test_alerts = self.merge_alerts(results, self.alerts)
 
 
 
