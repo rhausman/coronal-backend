@@ -29,7 +29,8 @@ class RHRAD_online:
                  myphd_id_anomalies="myphd_id_anomalies.csv",
                  myphd_id_figure1 = "myphd_id_anomalies.pdf",
                  myphd_id_alerts = "myphd_id_alerts.csv",
-                 myphd_id_figure2 = "myphd_id_alerts.pdf"
+                 myphd_id_figure2 = "myphd_id_alerts.pdf",
+                 last_day_only=True
                  ):
     
         # Initialize Variables
@@ -47,6 +48,8 @@ class RHRAD_online:
         self.myphd_id_figure1 = myphd_id_figure1
         self.myphd_id_alerts = self.myphd_id+"_alerts.csv"
         self.myphd_id_figure2 = myphd_id_figure2
+
+        self.last_day_only = last_day_only
         
         # Process data
         df1 = self.resting_heart_rate(self.fitbit_hr, self.fitbit_steps) # RHR df at 1min resolution
@@ -144,8 +147,8 @@ class RHRAD_online:
         # parameters - 1 month baseline window and 1 hour sliding window
         # fit the model and predict the test set
         """
-        for i in range(baseline_window, len(data_seasnCorec)):
-            data_train_w = data_seasnCorec[i-baseline_window:i] 
+        if(self.last_day_only):
+            data_train_w = data_seasnCorec[-1-baseline_window:-1] 
             # train data normalization ------------------------------------------------------
             data_train_w += 0.1
             standardizer = StandardScaler().fit(data_train_w.values)
@@ -157,7 +160,7 @@ class RHRAD_online:
             data_train_w = data_1
             self.data_train.append(data_train_w)
 
-            data_test_w = data_seasnCorec[i:i+sliding_window] 
+            data_test_w = data_seasnCorec[-1:] 
             # test data normalization ------------------------------------------------------
             data_test_w += 0.1
             data_test_scaled = standardizer.transform(data_test_w.values)
@@ -170,12 +173,46 @@ class RHRAD_online:
 
             # fit the model  ------------------------------------------------------
             model = EllipticEnvelope(random_state=self.RANDOM_SEED,
-                                     contamination=self.outliers_fraction,
-                                     support_fraction=0.7).fit(data_train_w)
+                                    contamination=self.outliers_fraction,
+                                    support_fraction=0.7).fit(data_train_w)
             # predict the test set
             preds = model.predict(data_test_w)
             #preds = preds.rename(lambda x: 'anomaly' if x == 0 else x, axis=1)
             self.dfs.append(preds)
+    
+        else:
+            for i in range(baseline_window, len(data_seasnCorec)):
+                data_train_w = data_seasnCorec[i-baseline_window:i] 
+                # train data normalization ------------------------------------------------------
+                data_train_w += 0.1
+                standardizer = StandardScaler().fit(data_train_w.values)
+                data_train_scaled = standardizer.transform(data_train_w.values)
+                data_train_scaled_features = pd.DataFrame(data_train_scaled, index=data_train_w.index, columns=data_train_w.columns)
+                
+                data = pd.DataFrame(data_train_scaled_features)
+                data_1 = pd.DataFrame(data).fillna(0)
+                data_train_w = data_1
+                self.data_train.append(data_train_w)
+
+                data_test_w = data_seasnCorec[i:i+sliding_window] 
+                # test data normalization ------------------------------------------------------
+                data_test_w += 0.1
+                data_test_scaled = standardizer.transform(data_test_w.values)
+                data_scaled_features = pd.DataFrame(data_test_scaled, index=data_test_w.index, columns=data_test_w.columns)
+                
+                data = pd.DataFrame(data_scaled_features)
+                data_1 = pd.DataFrame(data).fillna(0)
+                data_test_w = data_1
+                self.data_test.append(data_test_w)
+
+                # fit the model  ------------------------------------------------------
+                model = EllipticEnvelope(random_state=self.RANDOM_SEED,
+                                        contamination=self.outliers_fraction,
+                                        support_fraction=0.7).fit(data_train_w)
+                # predict the test set
+                preds = model.predict(data_test_w)
+                #preds = preds.rename(lambda x: 'anomaly' if x == 0 else x, axis=1)
+                self.dfs.append(preds)
     
     # Merge predictions ------------------------------------------------------
     def merge_test_results(self, data_test):
