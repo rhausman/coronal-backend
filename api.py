@@ -34,7 +34,7 @@ class Item(BaseModel):
 
 # an example definition of a post operation which will take in a file
 @app.post("/analyze") #/{option}
-async def style_the_image(
+async def analyze_data(
     file: UploadFile = File(...)#, option: Optional[str] = "30day"
 ):
     # INSERT PROCESSING HERE
