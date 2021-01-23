@@ -32,11 +32,16 @@ class Item(BaseModel):
     price: float
     is_offer: Optional[bool] = None
 
+
 # an example definition of a post operation which will take in a file
-@app.post("/analyze") #/{option}
+@app.post("/analyze")  # /{option}
 async def analyze_data(
-    file: UploadFile = File(...)#, option: Optional[str] = "30day"
+    file: UploadFile = File(...),  # , option: Optional[str] = "30day"
 ):
+    resp = {
+        "threat_level": "unknown",
+        "disp_str": "Please upload a file to recieve an analysis",
+    }
     # INSERT PROCESSING HERE
     """
     data = extract_data_from_file(file)
@@ -44,8 +49,14 @@ async def analyze_data(
     prediction = make_prediction_on_data_using_appropriate_model(data,model)
     etc.
     """
-    
-    return {"threat_level":"low", "disp_str":"You probably don't have COVID. Maintain normal testing routine, and continue social distancing."}
+    if file.content_type != "text/csv":
+        resp["disp_str"] = "Please be sure to upload a CSV file."
+    elif True:
+        resp["threat_level"] = "low"
+        resp[
+            "disp_str"
+        ] = "You probably don't have COVID. Maintain normal testing routine, and continue social distancing."
+    return resp
 
 
 @app.get("/get_operations")
