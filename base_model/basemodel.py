@@ -151,37 +151,38 @@ class RHRAD_online:
         # fit the model and predict the test set
         """
         if(self.last_day_only):
-            data_train_w = data_seasnCorec[-1-baseline_window:-1] 
-            # train data normalization ------------------------------------------------------
-            data_train_w += 0.1
-            standardizer = StandardScaler().fit(data_train_w.values)
-            data_train_scaled = standardizer.transform(data_train_w.values)
-            data_train_scaled_features = pd.DataFrame(data_train_scaled, index=data_train_w.index, columns=data_train_w.columns)
-            
-            data = pd.DataFrame(data_train_scaled_features)
-            data_1 = pd.DataFrame(data).fillna(0)
-            data_train_w = data_1
-            self.data_train.append(data_train_w)
+            for i in range(len(data_seasnCorec)-15, len(data_seasnCorec)):
+                data_train_w = data_seasnCorec[i-baseline_window:i] 
+                # train data normalization ------------------------------------------------------
+                data_train_w += 0.1
+                standardizer = StandardScaler().fit(data_train_w.values)
+                data_train_scaled = standardizer.transform(data_train_w.values)
+                data_train_scaled_features = pd.DataFrame(data_train_scaled, index=data_train_w.index, columns=data_train_w.columns)
+                
+                data = pd.DataFrame(data_train_scaled_features)
+                data_1 = pd.DataFrame(data).fillna(0)
+                data_train_w = data_1
+                self.data_train.append(data_train_w)
 
-            data_test_w = data_seasnCorec[-1:] 
-            # test data normalization ------------------------------------------------------
-            data_test_w += 0.1
-            data_test_scaled = standardizer.transform(data_test_w.values)
-            data_scaled_features = pd.DataFrame(data_test_scaled, index=data_test_w.index, columns=data_test_w.columns)
-            
-            data = pd.DataFrame(data_scaled_features)
-            data_1 = pd.DataFrame(data).fillna(0)
-            data_test_w = data_1
-            self.data_test.append(data_test_w)
+                data_test_w = data_seasnCorec[i:i+sliding_window] 
+                # test data normalization ------------------------------------------------------
+                data_test_w += 0.1
+                data_test_scaled = standardizer.transform(data_test_w.values)
+                data_scaled_features = pd.DataFrame(data_test_scaled, index=data_test_w.index, columns=data_test_w.columns)
+                
+                data = pd.DataFrame(data_scaled_features)
+                data_1 = pd.DataFrame(data).fillna(0)
+                data_test_w = data_1
+                self.data_test.append(data_test_w)
 
-            # fit the model  ------------------------------------------------------
-            model = EllipticEnvelope(random_state=self.RANDOM_SEED,
-                                    contamination=self.outliers_fraction,
-                                    support_fraction=0.7).fit(data_train_w)
-            # predict the test set
-            preds = model.predict(data_test_w)
-            #preds = preds.rename(lambda x: 'anomaly' if x == 0 else x, axis=1)
-            self.dfs.append(preds)
+                # fit the model  ------------------------------------------------------
+                model = EllipticEnvelope(random_state=self.RANDOM_SEED,
+                                        contamination=self.outliers_fraction,
+                                        support_fraction=0.7).fit(data_train_w)
+                # predict the test set
+                preds = model.predict(data_test_w)
+                #preds = preds.rename(lambda x: 'anomaly' if x == 0 else x, axis=1)
+                self.dfs.append(preds)
     
         else:
             for i in range(baseline_window, len(data_seasnCorec)):
@@ -410,7 +411,43 @@ class RHRAD_online:
                 figure = fig.savefig(myphd_id_figure1, bbox_inches='tight')       
                 return figure
 
+class resultsProcesser:
+    def __init__(self,
+                 anomaliesCSV,
+                 alertsCSV):
+        self.anomaliesCSV = anomaliesCSV
+        self.alertsCSV = alertsCSV
+        self.alertLevel = None
 
+        self.anomalies = pd.read_csv(self.anomaliesCSV)
+        numAnomalies = len(self.anomalies)
+        if(numAnomalies == 0):
+            self.alertLevel = "low"
+        else:
+            alerts = pd.read_csv(self.alertsCSV)
+            temp = alerts.iloc[0]["alert_type"]
+            if(temp == "GREEN"):
+                self.alertLevel = "low"
+            elif(temp == "YELLOW"):
+                self.alertLevel = "medium"
+            elif(temp == "RED"):
+                self.alertLevel = "high"
+
+    def getAlertLevel(self):
+        return self.alertLevel
+
+    def getAnomalousHours(self):
+        hours = []
+
+        for i in range(len(self.anomalies)):
+            hours.append(self.anomalies.iloc[i]["datetime"].split(" ")[1][:5])
+
+        return hours[:5]
+        
+
+        
+            
+        
 
 
 
